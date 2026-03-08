@@ -1,0 +1,3 @@
+module.exports=[73905,a=>{a.v({className:"noto_sans_jp_43a8d00c-module__snZIpq__className",variable:"noto_sans_jp_43a8d00c-module__snZIpq__variable"})},27572,a=>{"use strict";var b=a.i(7997),c=a.i(73905);let d={className:c.default.className,style:{fontFamily:"'Noto Sans JP', 'Noto Sans JP Fallback'",fontStyle:"normal"}};function e({children:a}){return(0,b.jsx)("html",{lang:"ja",children:(0,b.jsx)("body",{className:`${d.variable} font-[family-name:var(--font-noto-sans-jp)] antialiased`,children:a})})}null!=c.default.variable&&(d.variable=c.default.variable),a.s(["default",()=>e,"metadata",0,{title:"議事録アプリ",description:"会議の議事録を記録・管理するアプリ"}],27572)}];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__5cf6bae2._.js.map

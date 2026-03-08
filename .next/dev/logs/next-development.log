@@ -1,0 +1,5 @@
+[00:00:00.780] Server  LOG     ✓ Ready in 580ms
+[00:35:37.030] Server  LOG       Reload env: .env.local
+[00:53:31.377] Server  ERROR   Error: ENOENT: no such file or directory, scandir 'C:\Dev\minutes-app\src\app'
+[00:53:31.378] Server  ERROR   ⨯ "unhandledRejection:" Error: ENOENT: no such file or directory, scandir 'C:\Dev\minutes-app\src\app'
+[00:53:31.379] Server  ERROR   ⨯ "unhandledRejection: " Error: ENOENT: no such file or directory, scandir 'C:\Dev\minutes-app\src\app'
