@@ -96,18 +96,22 @@ export default function OutputPage() {
 
   // Notion
   const [notionDbId, setNotionDbId] = useState('');
+  const [notionToken, setNotionToken] = useState('');
   const [notionSaving, setNotionSaving] = useState(false);
   const [notionPageUrl, setNotionPageUrl] = useState<string | null>(null);
   const [notionError, setNotionError] = useState<string | null>(null);
 
   const NOTION_STORAGE_KEY = 'notionDatabaseId';
+  const NOTION_TOKEN_KEY = 'notionToken';
 
-  // ── Load Notion DB ID from localStorage ──────────────────────────
+  // ── Load Notion settings from localStorage ────────────────────────
 
   useEffect(() => {
     const saved = localStorage.getItem(NOTION_STORAGE_KEY);
     if (saved) setNotionDbId(saved);
-  }, [NOTION_STORAGE_KEY]);
+    const savedToken = localStorage.getItem(NOTION_TOKEN_KEY);
+    if (savedToken) setNotionToken(savedToken);
+  }, []);
 
   // ── Load session ─────────────────────────────────────────────────
 
@@ -299,12 +303,13 @@ export default function OutputPage() {
   // ── Notion save ──────────────────────────────────────────────────
 
   const handleNotionSave = async () => {
-    if (!session || !notionDbId.trim()) return;
+    if (!session || !notionDbId.trim() || !notionToken.trim()) return;
     setNotionSaving(true);
     setNotionError(null);
 
-    // Notion DB ID を localStorage に保存
+    // Notion settings を localStorage に保存
     localStorage.setItem(NOTION_STORAGE_KEY, notionDbId.trim());
+    localStorage.setItem(NOTION_TOKEN_KEY, notionToken.trim());
 
     // talks をフラット化
     const allTalks = Array.from(talkMap.values()).flat();
@@ -318,6 +323,7 @@ export default function OutputPage() {
           organization,
           talks: allTalks,
           notionDatabaseId: notionDbId.trim(),
+          notionToken: notionToken.trim(),
         }),
       });
 
@@ -535,6 +541,20 @@ export default function OutputPage() {
             <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Notion連携</h3>
 
             <div className="space-y-2">
+              <label className="text-xs text-zinc-400">Integration Token</label>
+              <input
+                type="password"
+                value={notionToken}
+                onChange={e => setNotionToken(e.target.value)}
+                placeholder="ntn_..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
+              />
+              <p className="text-xs text-zinc-600">
+                ntn_ で始まる Integration Token
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <label className="text-xs text-zinc-400">データベース ID</label>
               <input
                 type="text"
@@ -550,7 +570,7 @@ export default function OutputPage() {
 
             <button
               onClick={handleNotionSave}
-              disabled={notionSaving || !notionDbId.trim()}
+              disabled={notionSaving || !notionDbId.trim() || !notionToken.trim()}
               className="w-full bg-zinc-700 hover:bg-zinc-600 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
             >
               <NotionIcon />

@@ -40,6 +40,7 @@ interface SaveToNotionBody {
   organization: Organization | null;
   talks: Talk[];
   notionDatabaseId: string;
+  notionToken: string;
 }
 
 // ── POST handler ────────────────────────────────────────────────────
@@ -47,15 +48,16 @@ interface SaveToNotionBody {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as SaveToNotionBody;
-    const { session, organization, talks, notionDatabaseId } = body;
+    const { session, organization, talks, notionDatabaseId, notionToken } = body;
 
-    const token = process.env.NOTION_TOKEN;
-    if (!token) {
-      return NextResponse.json({ error: 'NOTION_TOKEN is not configured' }, { status: 500 });
+    if (!notionToken) {
+      return NextResponse.json({ error: 'notionToken is required' }, { status: 400 });
     }
     if (!notionDatabaseId) {
       return NextResponse.json({ error: 'notionDatabaseId is required' }, { status: 400 });
     }
+
+    const token = notionToken;
 
     const headers = {
       Authorization: `Bearer ${token}`,
