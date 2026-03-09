@@ -94,6 +94,21 @@ export default function OutputPage() {
   const [sheetsExporting, setSheetsExporting] = useState(false);
   const tokenClientRef = useRef<TokenClient | null>(null);
 
+  // Notion
+  const [notionDbId, setNotionDbId] = useState('');
+  const [notionSaving, setNotionSaving] = useState(false);
+  const [notionPageUrl, setNotionPageUrl] = useState<string | null>(null);
+  const [notionError, setNotionError] = useState<string | null>(null);
+
+  const NOTION_STORAGE_KEY = 'notionDatabaseId';
+
+  // ── Load Notion DB ID from localStorage ──────────────────────────
+
+  useEffect(() => {
+    const saved = localStorage.getItem(NOTION_STORAGE_KEY);
+    if (saved) setNotionDbId(saved);
+  }, [NOTION_STORAGE_KEY]);
+
   // ── Load session ─────────────────────────────────────────────────
 
   useEffect(() => {
@@ -278,6 +293,45 @@ export default function OutputPage() {
       alert('スプレッドシートの作成に失敗しました。');
     } finally {
       setSheetsExporting(false);
+    }
+  };
+
+  // ── Notion save ──────────────────────────────────────────────────
+
+  const handleNotionSave = async () => {
+    if (!session || !notionDbId.trim()) return;
+    setNotionSaving(true);
+    setNotionError(null);
+
+    // Notion DB ID を localStorage に保存
+    localStorage.setItem(NOTION_STORAGE_KEY, notionDbId.trim());
+
+    // talks をフラット化
+    const allTalks = Array.from(talkMap.values()).flat();
+
+    try {
+      const res = await fetch('/api/save-to-notion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session,
+          organization,
+          talks: allTalks,
+          notionDatabaseId: notionDbId.trim(),
+        }),
+      });
+
+      const data = (await res.json()) as { success?: boolean; notionPageUrl?: string; error?: string };
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error ?? 'Unknown error');
+      }
+      setNotionPageUrl(data.notionPageUrl ?? null);
+    } catch (err) {
+      console.error('Notion save error:', err);
+      setNotionError(err instanceof Error ? err.message : 'Notionへの保存に失敗しました');
+    } finally {
+      setNotionSaving(false);
     }
   };
 
@@ -476,6 +530,52 @@ export default function OutputPage() {
             )}
           </div>
 
+          {/* ── Notion 保存パネル ── */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Notion連携</h3>
+
+            <div className="space-y-2">
+              <label className="text-xs text-zinc-400">データベース ID</label>
+              <input
+                type="text"
+                value={notionDbId}
+                onChange={e => setNotionDbId(e.target.value)}
+                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors font-mono"
+              />
+              <p className="text-xs text-zinc-600">
+                Notion DB URL 末尾の32文字
+              </p>
+            </div>
+
+            <button
+              onClick={handleNotionSave}
+              disabled={notionSaving || !notionDbId.trim()}
+              className="w-full bg-zinc-700 hover:bg-zinc-600 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+            >
+              <NotionIcon />
+              {notionSaving ? '保存中...' : 'Notionに保存'}
+            </button>
+
+            {/* エラー */}
+            {notionError && (
+              <p className="text-xs text-red-400 break-all">{notionError}</p>
+            )}
+
+            {/* 保存済みリンク */}
+            {notionPageUrl && (
+              <a
+                href={notionPageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                <span>✓ Notionページを開く</span>
+                <span className="text-zinc-600">↗</span>
+              </a>
+            )}
+          </div>
+
           {/* ── 操作ボタン ── */}
           <div className="flex flex-col gap-3">
             <button
@@ -573,6 +673,14 @@ function StatRow({ label, value }: { label: string; value: string }) {
       <span className="text-sm text-zinc-500">{label}</span>
       <span className="text-sm text-zinc-100 font-medium">{value}</span>
     </li>
+  );
+}
+
+function NotionIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.934zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.14c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z" />
+    </svg>
   );
 }
 
