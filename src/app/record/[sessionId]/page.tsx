@@ -505,7 +505,18 @@ export default function RecordPage() {
 
         {/* 音声入力パネル */}
         <div className="px-4 py-3 border-t border-zinc-800 flex items-center gap-4">
-          <div className="flex-1 min-w-0">
+          <button
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl flex-shrink-0 transition-all ${
+              isRecording
+                ? 'bg-red-600 hover:bg-red-500 shadow-lg shadow-red-900/40'
+                : 'bg-green-500 hover:bg-green-400'
+            }`}
+            aria-label={isRecording ? '録音停止' : '録音開始'}
+          >
+            {isRecording ? '⏹' : '🎤'}
+          </button>
+          <div className="flex-1 min-w-0 pl-2">
             {isRecording ? (
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
@@ -519,17 +530,6 @@ export default function RecordPage() {
               <p className="text-sm text-zinc-600">マイクボタンを押して音声入力を開始</p>
             )}
           </div>
-          <button
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl flex-shrink-0 transition-all ${
-              isRecording
-                ? 'bg-red-600 hover:bg-red-500 shadow-lg shadow-red-900/40'
-                : 'bg-zinc-700 hover:bg-zinc-600'
-            }`}
-            aria-label={isRecording ? '録音停止' : '録音開始'}
-          >
-            {isRecording ? '⏹' : '🎤'}
-          </button>
         </div>
 
       </div>
